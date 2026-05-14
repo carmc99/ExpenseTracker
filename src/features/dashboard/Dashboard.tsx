@@ -223,12 +223,15 @@ export function Dashboard() {
               );
             })}
 
-            {/* Ahorro: calculado como sobrante real (Ingreso − Necesidades − Ocio) */}
+            {/* Disponible para ahorrar: sobrante después de cubrir la meta de ahorro */}
             {(() => {
               const savingsTarget = budgetByRubro.savings;
               const realSavings = monthlyIncome - spentByRubro.needs - spentByRubro.leisure;
-              const savingsRatio = savingsTarget > 0 ? realSavings / savingsTarget : 0;
-              const progressValue = savingsTarget > 0 ? Math.min(Math.max(0, realSavings) / savingsTarget * 100, 100) : 0;
+              // Cuánto queda libre una vez descontada la meta comprometida
+              const disponible = realSavings - savingsTarget;
+              const progressValue = savingsTarget > 0
+                ? Math.min(Math.max(0, realSavings) / savingsTarget * 100, 100)
+                : 0;
 
               let variant: 'success' | 'warning' | 'danger';
               let badgeLabel: string;
@@ -239,52 +242,53 @@ export function Dashboard() {
               if (realSavings < 0) {
                 variant = 'danger';
                 badgeLabel = 'Déficit';
-                diffLabel = `Déficit de ${formatCurrency(Math.abs(realSavings), state.config.currency)} — los gastos superan los ingresos`;
+                diffLabel = `Los gastos superan los ingresos en ${formatCurrency(toDisplay(Math.abs(realSavings)), state.config.currency)}`;
                 diffColor = 'text-red-500';
                 progressColor = '#ef4444';
-              } else if (savingsRatio >= 1) {
+              } else if (disponible >= 0) {
                 variant = 'success';
-                badgeLabel = 'Meta lograda';
-                diffLabel = `Meta superada · Sobrante adicional: ${formatCurrency(realSavings - savingsTarget, state.config.currency)}`;
+                badgeLabel = 'Meta cumplida';
+                diffLabel = disponible > 0
+                  ? `Disponible tras la meta: ${formatCurrency(toDisplay(disponible), state.config.currency)}`
+                  : 'Meta de ahorro exactamente cumplida';
                 diffColor = 'text-green-600';
                 progressColor = '#22c55e';
-              } else if (savingsRatio >= 0.85) {
-                variant = 'warning';
-                badgeLabel = 'Cerca';
-                diffLabel = `Faltan ${formatCurrency(savingsTarget - realSavings, state.config.currency)} para la meta`;
-                diffColor = 'text-yellow-600';
-                progressColor = '#eab308';
               } else {
-                variant = 'warning';
-                badgeLabel = 'Por debajo';
-                diffLabel = `Faltan ${formatCurrency(savingsTarget - realSavings, state.config.currency)} para la meta · Reduce necesidades u ocio`;
-                diffColor = 'text-orange-500';
-                progressColor = '#f97316';
+                const faltante = Math.abs(disponible);
+                const ratio = realSavings / savingsTarget;
+                variant = ratio >= 0.85 ? 'warning' : 'warning';
+                badgeLabel = ratio >= 0.85 ? 'Cerca' : 'Por debajo';
+                diffLabel = `Faltan ${formatCurrency(toDisplay(faltante), state.config.currency)} para cumplir la meta`;
+                diffColor = ratio >= 0.85 ? 'text-yellow-600' : 'text-orange-500';
+                progressColor = ratio >= 0.85 ? '#eab308' : '#f97316';
               }
 
               return (
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <span className="font-medium">Ahorro</span>
+                      <span className="font-medium">Disponible para ahorrar</span>
                       <Badge variant={variant} className="text-xs">
                         {badgeLabel}
                       </Badge>
                     </div>
                     <span className="text-sm font-medium text-muted-foreground">
-                      {formatCurrency(Math.max(0, realSavings), state.config.currency)}{' '}
-                      <span className="text-xs">/ {formatCurrency(savingsTarget, state.config.currency)}</span>
+                      {formatCurrency(toDisplay(Math.max(0, realSavings)), state.config.currency)}{' '}
+                      <span className="text-xs">/ {formatCurrency(toDisplay(savingsTarget), state.config.currency)} meta</span>
                     </span>
                   </div>
                   <p className="text-xs text-muted-foreground leading-relaxed">
-                    {formatCurrency(monthlyIncome, state.config.currency)}{' '}
+                    {formatCurrency(toDisplay(monthlyIncome), state.config.currency)}{' '}
                     <span className="opacity-60">(ingreso)</span>
                     {' − '}
-                    {formatCurrency(spentByRubro.needs, state.config.currency)}{' '}
+                    {formatCurrency(toDisplay(spentByRubro.needs), state.config.currency)}{' '}
                     <span className="opacity-60">(nec.)</span>
                     {' − '}
-                    {formatCurrency(spentByRubro.leisure, state.config.currency)}{' '}
+                    {formatCurrency(toDisplay(spentByRubro.leisure), state.config.currency)}{' '}
                     <span className="opacity-60">(ocio)</span>
+                    {' − '}
+                    {formatCurrency(toDisplay(savingsTarget), state.config.currency)}{' '}
+                    <span className="opacity-60">(meta ahorro)</span>
                   </p>
                   <Progress
                     value={progressValue}
