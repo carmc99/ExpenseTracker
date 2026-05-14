@@ -150,15 +150,15 @@ export function Dashboard() {
       <Separator />
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <Card>
+        <Card className="flex flex-col">
           <CardHeader>
             <CardTitle>Gasto por categoría</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="flex-1 flex flex-col">
             {categoryData.length === 0 ? (
               <p className="text-center text-muted-foreground py-8">No hay gastos en este período</p>
             ) : (
-              <div className="h-[300px]">
+              <div className="flex-1 min-h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={categoryData} layout="vertical" margin={{ left: 20 }}>
                     <XAxis type="number" tickFormatter={(v) => formatCurrency(toDisplay(v), state.config.currency).replace(/\s/g, '')} />
