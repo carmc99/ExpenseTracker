@@ -37,7 +37,7 @@ const scenarioColors = {
 };
 
 export function Projections() {
-  const { state } = useApp();
+  const { state, toDisplay } = useApp();
 
   const [params, setParams] = useState<ProjectionParams>({
     referenceMonths: 3,
@@ -191,13 +191,13 @@ export function Projections() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{formatCurrency(finalValues.pessimistic, state.config.currency)}</div>
+              <div className="text-2xl font-bold">{formatCurrency(toDisplay(finalValues.pessimistic), state.config.currency)}</div>
               <p className="text-xs text-muted-foreground">Ahorro acumulado</p>
               <Separator className="my-3" />
               <div className="space-y-1 text-sm">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Gasto/mes</span>
-                  <span>{formatCurrency(monthlyExpenses * 1.1, state.config.currency)}</span>
+                  <span>{formatCurrency(toDisplay(monthlyExpenses * 1.1), state.config.currency)}</span>
                 </div>
               </div>
             </CardContent>
@@ -212,13 +212,13 @@ export function Projections() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{formatCurrency(finalValues.base, state.config.currency)}</div>
+              <div className="text-2xl font-bold">{formatCurrency(toDisplay(finalValues.base), state.config.currency)}</div>
               <p className="text-xs text-muted-foreground">Ahorro acumulado</p>
               <Separator className="my-3" />
               <div className="space-y-1 text-sm">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Gasto/mes</span>
-                  <span>{formatCurrency(monthlyExpenses, state.config.currency)}</span>
+                  <span>{formatCurrency(toDisplay(monthlyExpenses), state.config.currency)}</span>
                 </div>
               </div>
             </CardContent>
@@ -232,13 +232,13 @@ export function Projections() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{formatCurrency(finalValues.optimistic, state.config.currency)}</div>
+              <div className="text-2xl font-bold">{formatCurrency(toDisplay(finalValues.optimistic), state.config.currency)}</div>
               <p className="text-xs text-muted-foreground">Ahorro acumulado</p>
               <Separator className="my-3" />
               <div className="space-y-1 text-sm">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Gasto/mes</span>
-                  <span>{formatCurrency(monthlyExpenses * 0.9, state.config.currency)}</span>
+                  <span>{formatCurrency(toDisplay(monthlyExpenses * 0.9), state.config.currency)}</span>
                 </div>
               </div>
             </CardContent>
@@ -268,7 +268,7 @@ export function Projections() {
                 <XAxis dataKey="month" tick={{ fontSize: 12 }} />
                 <YAxis tickFormatter={(value) => `$${(value / 1000000).toFixed(1)}M`} />
                 <Tooltip
-                  formatter={(value) => formatCurrency(value as number, state.config.currency)}
+                  formatter={(value) => formatCurrency(toDisplay(value as number), state.config.currency)}
                   contentStyle={{ borderRadius: '8px', border: '1px solid #ccc' }}
                 />
                 <Area
@@ -299,15 +299,15 @@ export function Projections() {
         <div className="grid gap-2 md:grid-cols-3">
           <div>
             <span className="text-muted-foreground">Ingreso base:</span>{' '}
-            <span className="font-semibold">{formatCurrency(monthlyIncome, state.config.currency)} / mes</span>
+            <span className="font-semibold">{formatCurrency(toDisplay(monthlyIncome), state.config.currency)} / mes</span>
           </div>
           <div>
             <span className="text-muted-foreground">Gasto promedio:</span>{' '}
-            <span className="font-semibold">{formatCurrency(monthlyExpenses, state.config.currency)} / mes</span>
+            <span className="font-semibold">{formatCurrency(toDisplay(monthlyExpenses), state.config.currency)} / mes</span>
           </div>
           <div>
             <span className="text-muted-foreground">Ahorro base:</span>{' '}
-            <span className="font-semibold">{formatCurrency(monthlyIncome - monthlyExpenses, state.config.currency)} / mes</span>
+            <span className="font-semibold">{formatCurrency(toDisplay(monthlyIncome - monthlyExpenses), state.config.currency)} / mes</span>
           </div>
         </div>
       </div>

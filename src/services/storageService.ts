@@ -18,7 +18,7 @@ const DEFAULT_CATEGORIES: Category[] = [
 ];
 
 const DEFAULT_CONFIG: AppConfig = {
-  currency: 'USD',
+  currency: 'COP',
   rule: {
     needs: 50,
     leisure: 30,
@@ -192,4 +192,5 @@ export const storageService = {
     saveData(data);
     return true;
   },
+
 };

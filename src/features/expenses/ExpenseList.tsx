@@ -61,7 +61,7 @@ const initialFormData: ExpenseFormData = {
 };
 
 export function ExpenseList() {
-  const { state, addExpense, updateExpense, deleteExpense } = useApp();
+  const { state, toDisplay, addExpense, updateExpense, deleteExpense } = useApp();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState<ExpenseFormData>(initialFormData);
@@ -232,7 +232,7 @@ export function ExpenseList() {
                   Mostrando {filteredExpenses.length} de {state.expenses.length} gastos
                 </span>
                 <span className="font-semibold">
-                  Total: {formatCurrency(totalExpenses, state.config.currency)}
+                  Total: {formatCurrency(toDisplay(totalExpenses), state.config.currency)}
                 </span>
               </div>
             </div>
@@ -259,7 +259,7 @@ export function ExpenseList() {
                       </div>
                       <div className="flex items-center gap-3">
                         <div className="text-right">
-                          <p className="font-bold">{formatCurrency(expense.amount, state.config.currency)}</p>
+                          <p className="font-bold">{formatCurrency(toDisplay(expense.amount), state.config.currency)}</p>
                           <Badge variant="outline" className="text-xs">
                             {expense.type === 'fixed' ? 'Fijo' : 'Variable'}
                           </Badge>
