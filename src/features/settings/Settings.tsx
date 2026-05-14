@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useApp } from '@/context/AppContext';
 import { formatCurrency } from '@/lib/utils';
+import { calculateMonthlyIncome } from '@/lib/calculations';
 import type { Category, Rubro } from '@/types';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,10 +15,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Plus, Pencil, Trash2, Download, Upload, RotateCcw, CheckCircle2 } from 'lucide-react';
 
 const CURRENCIES = [
-  { value: 'CLP', label: 'CLP - Peso chileno' },
   { value: 'USD', label: 'USD - Dólar estadounidense' },
-  { value: 'EUR', label: 'EUR - Euro' },
-  { value: 'MXN', label: 'MXN - Peso mexicano' },
   { value: 'COP', label: 'COP - Peso colombiano' },
 ];
 
@@ -31,6 +29,9 @@ const DEFAULT_SAMPLE_INCOME = 1500000;
 
 export function Settings() {
   const { state, updateConfig, addCategory, updateCategory, deleteCategory, resetData, exportData, importData } = useApp();
+
+  const actualMonthlyIncome = useMemo(() => calculateMonthlyIncome(state.incomes), [state.incomes]);
+  const previewIncome = actualMonthlyIncome > 0 ? actualMonthlyIncome : DEFAULT_SAMPLE_INCOME;
 
   const [ruleValues, setRuleValues] = useState({
     needs: state.config.rule.needs,
@@ -208,19 +209,26 @@ export function Settings() {
             </div>
 
             <div className="rounded-lg bg-muted p-4">
-              <p className="text-sm font-medium mb-2">Vista previa</p>
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-sm font-medium">Vista previa</p>
+                <p className="text-xs text-muted-foreground">
+                  {actualMonthlyIncome > 0
+                    ? `Basado en tu ingreso: ${formatCurrency(actualMonthlyIncome, state.config.currency)}`
+                    : `Ingreso de referencia: ${formatCurrency(DEFAULT_SAMPLE_INCOME, state.config.currency)}`}
+                </p>
+              </div>
               <div className="grid grid-cols-3 gap-2 text-center">
                 <div>
                   <p className="text-xs text-muted-foreground">Necesidades</p>
-                  <p className="font-semibold">{formatCurrency(DEFAULT_SAMPLE_INCOME * (ruleValues.needs / 100), state.config.currency)}</p>
+                  <p className="font-semibold">{formatCurrency(previewIncome * (ruleValues.needs / 100), state.config.currency)}</p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Ocio</p>
-                  <p className="font-semibold">{formatCurrency(DEFAULT_SAMPLE_INCOME * (ruleValues.leisure / 100), state.config.currency)}</p>
+                  <p className="font-semibold">{formatCurrency(previewIncome * (ruleValues.leisure / 100), state.config.currency)}</p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Ahorro</p>
-                  <p className="font-semibold">{formatCurrency(DEFAULT_SAMPLE_INCOME * (ruleValues.savings / 100), state.config.currency)}</p>
+                  <p className="font-semibold">{formatCurrency(previewIncome * (ruleValues.savings / 100), state.config.currency)}</p>
                 </div>
               </div>
             </div>

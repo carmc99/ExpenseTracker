@@ -182,34 +182,57 @@ export function Dashboard() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Regla 50 / 30 / 20</CardTitle>
+            <CardTitle>
+              Regla {state.config.rule.needs} / {state.config.rule.leisure} / {state.config.rule.savings}
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             {RUBROS.map((rubro) => {
               const status = rubroStatus(rubro);
-              const statusVariant = status.status === 'ok' ? 'success' : status.status === 'warning' ? 'warning' : 'danger';
+              const diff = status.budget - status.spent;
+              const isSavings = rubro === 'savings';
+              const isOver = status.status === 'over';
+              const statusVariant = isSavings
+                ? isOver ? 'success' : status.status === 'warning' ? 'warning' : 'danger'
+                : status.status === 'ok' ? 'success' : status.status === 'warning' ? 'warning' : 'danger';
+
+              let diffLabel: string;
+              if (isSavings) {
+                diffLabel = diff >= 0
+                  ? `Faltan ${formatCurrency(diff, state.config.currency)} para la meta`
+                  : `Meta superada en ${formatCurrency(Math.abs(diff), state.config.currency)}`;
+              } else {
+                diffLabel = diff >= 0
+                  ? `Disponible: ${formatCurrency(diff, state.config.currency)}`
+                  : `Excedido en ${formatCurrency(Math.abs(diff), state.config.currency)}`;
+              }
+
               return (
                 <div key={rubro} className="space-y-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <span className="font-medium">{getRubroLabel(rubro)}</span>
                       <Badge variant={statusVariant} className="text-xs">
-                        {getStatusLabel(status.status)}
+                        {isSavings && isOver ? 'Meta superada' : getStatusLabel(status.status)}
                       </Badge>
                     </div>
-                    <span className="text-sm text-muted-foreground">
-                      {status.percentage.toFixed(0)}% / {state.config.rule[rubro]}%
+                    <span className="text-sm font-medium text-muted-foreground">
+                      {formatCurrency(status.spent, state.config.currency)}{' '}
+                      <span className="text-xs">/ {formatCurrency(status.budget, state.config.currency)}</span>
                     </span>
                   </div>
                   <Progress
                     value={Math.min(status.percentage, 100)}
                     className="h-3"
-                    style={{ '--progress-color': status.status === 'ok' ? '#22c55e' : status.status === 'warning' ? '#eab308' : '#ef4444' } as React.CSSProperties}
+                    style={{ '--progress-color': statusVariant === 'success' ? '#22c55e' : statusVariant === 'warning' ? '#eab308' : '#ef4444' } as React.CSSProperties}
                   />
-                  <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>Gastado: {formatCurrency(status.spent, state.config.currency)}</span>
-                    <span>Presupuesto: {formatCurrency(status.budget, state.config.currency)}</span>
-                  </div>
+                  <p className={`text-xs font-medium ${
+                    isSavings
+                      ? isOver ? 'text-green-600' : 'text-orange-500'
+                      : diff >= 0 ? 'text-muted-foreground' : 'text-red-500'
+                  }`}>
+                    {diffLabel}
+                  </p>
                 </div>
               );
             })}

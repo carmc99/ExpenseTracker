@@ -18,7 +18,7 @@ const DEFAULT_CATEGORIES: Category[] = [
 ];
 
 const DEFAULT_CONFIG: AppConfig = {
-  currency: 'CLP',
+  currency: 'USD',
   rule: {
     needs: 50,
     leisure: 30,
