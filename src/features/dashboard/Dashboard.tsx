@@ -28,7 +28,7 @@ const RUBRO_COLORS: Record<Rubro, string> = {
 };
 
 export function Dashboard() {
-  const { state } = useApp();
+  const { state, toDisplay } = useApp();
   const [selectedPeriod, setSelectedPeriod] = useState(getMonthsArray(1)[0]);
   const availableMonths = getMonthsArray(12);
 
@@ -117,7 +117,7 @@ export function Dashboard() {
             <TrendingUp className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(monthlyIncome, state.config.currency)}</div>
+            <div className="text-2xl font-bold">{formatCurrency(toDisplay(monthlyIncome), state.config.currency)}</div>
             <p className="text-xs text-muted-foreground">Neto mensual ponderado</p>
           </CardContent>
         </Card>
@@ -127,7 +127,7 @@ export function Dashboard() {
             <Wallet className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(totalExpenses, state.config.currency)}</div>
+            <div className="text-2xl font-bold">{formatCurrency(toDisplay(totalExpenses), state.config.currency)}</div>
             <p className={`text-xs ${expenseChange >= 0 ? 'text-red-500' : 'text-green-500'}`}>
               {expenseChange >= 0 ? '↑' : '↓'} {Math.abs(expenseChange).toFixed(1)}% vs período anterior
             </p>
@@ -140,7 +140,7 @@ export function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className={`text-2xl font-bold ${balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              {formatCurrency(balance, state.config.currency)}
+              {formatCurrency(toDisplay(balance), state.config.currency)}
             </div>
             <p className="text-xs text-muted-foreground">{balancePercentage.toFixed(1)}% del ingreso</p>
           </CardContent>
@@ -161,10 +161,10 @@ export function Dashboard() {
               <div className="h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={categoryData} layout="vertical" margin={{ left: 20 }}>
-                    <XAxis type="number" tickFormatter={(v) => formatCurrency(v, state.config.currency).replace(/\s/g, '')} />
+                    <XAxis type="number" tickFormatter={(v) => formatCurrency(toDisplay(v), state.config.currency).replace(/\s/g, '')} />
                     <YAxis type="category" dataKey="category" width={120} tick={{ fontSize: 12 }} />
                     <Tooltip
-                      formatter={(value) => formatCurrency(value as number, state.config.currency)}
+                      formatter={(value) => formatCurrency(toDisplay(value as number), state.config.currency)}
                       labelStyle={{ color: '#888' }}
                     />
                     <Bar dataKey="amount" radius={[0, 4, 4, 0]}>
@@ -205,8 +205,8 @@ export function Dashboard() {
                       </Badge>
                     </div>
                     <span className="text-sm font-medium text-muted-foreground">
-                      {formatCurrency(status.spent, state.config.currency)}{' '}
-                      <span className="text-xs">/ {formatCurrency(status.budget, state.config.currency)}</span>
+                      {formatCurrency(toDisplay(status.spent), state.config.currency)}{' '}
+                      <span className="text-xs">/ {formatCurrency(toDisplay(status.budget), state.config.currency)}</span>
                     </span>
                   </div>
                   <Progress
@@ -307,9 +307,9 @@ export function Dashboard() {
                   dataKey="month"
                   tickFormatter={(value) => getPeriodLabel(value).split(' ')[0].substring(0, 3)}
                 />
-                <YAxis tickFormatter={(value) => `$${(value / 1000000).toFixed(1)}M`} />
+                <YAxis tickFormatter={(value) => formatCurrency(toDisplay(value), state.config.currency)} />
                 <Tooltip
-                  formatter={(value) => formatCurrency(value as number, state.config.currency)}
+                  formatter={(value) => formatCurrency(toDisplay(value as number), state.config.currency)}
                   labelFormatter={(value) => getPeriodLabel(value as string)}
                 />
                 <Legend />

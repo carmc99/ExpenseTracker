@@ -32,7 +32,7 @@ const initialFormData: IncomeFormData = {
 };
 
 export function IncomeList() {
-  const { state, addIncome, updateIncome, deleteIncome } = useApp();
+  const { state, toDisplay, addIncome, updateIncome, deleteIncome } = useApp();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState<IncomeFormData>(initialFormData);
@@ -105,7 +105,7 @@ export function IncomeList() {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(monthlyIncome, state.config.currency)}</div>
+            <div className="text-2xl font-bold">{formatCurrency(toDisplay(monthlyIncome), state.config.currency)}</div>
             <p className="text-xs text-muted-foreground">Total ponderado por frecuencia</p>
           </CardContent>
         </Card>
@@ -133,7 +133,7 @@ export function IncomeList() {
                         <p className="font-medium">{income.source}</p>
                         <p className="text-sm text-muted-foreground">
                           {frequencies.find((f) => f.value === income.frequency)?.label} •{' '}
-                          {formatCurrency(income.amount, state.config.currency)}
+                          {formatCurrency(toDisplay(income.amount), state.config.currency)}
                           {income.frequency === 'monthly' && ' / mes'}
                           {income.frequency === 'biweekly' && ' / quincena'}
                         </p>
