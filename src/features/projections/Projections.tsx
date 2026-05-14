@@ -50,10 +50,10 @@ export function Projections() {
 
   const monthlyExpenses = useMemo(() => {
     const lastMonths = getMonthsArray(params.referenceMonths);
-    const totalExpenses = state.expenses
-      .filter((e) => lastMonths.includes(e.period))
-      .reduce((sum, e) => sum + e.amount, 0);
-    return totalExpenses / params.referenceMonths;
+    const filteredExpenses = state.expenses.filter((e) => lastMonths.includes(e.period));
+    const monthsWithExpenses = new Set(filteredExpenses.map((e) => e.period)).size;
+    const totalExpenses = filteredExpenses.reduce((sum, e) => sum + e.amount, 0);
+    return monthsWithExpenses > 0 ? totalExpenses / monthsWithExpenses : 0;
   }, [state.expenses, params.referenceMonths]);
 
   const projectionMonths = useMemo(() => {
