@@ -33,11 +33,11 @@ export async function getExchangeRate(from: string, to: string): Promise<number>
   const cache = loadCache();
   if (cache.pairs[key] !== undefined) return cache.pairs[key];
 
-  const response = await fetch(`https://api.frankfurter.app/latest?from=${from}&to=${to}`);
+  const response = await fetch(`https://api.frankfurter.dev/v2/rate/${from}/${to}`);
   if (!response.ok) throw new Error('No se pudo obtener el tipo de cambio');
 
-  const data = (await response.json()) as { rates: Record<string, number> };
-  const rate = data.rates[to];
+  const data = (await response.json()) as { rate: number };
+  const rate = data.rate;
   if (rate === undefined) throw new Error(`Tasa no disponible para ${from}→${to}`);
 
   cache.pairs[key] = rate;
