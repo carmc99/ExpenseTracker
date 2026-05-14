@@ -15,7 +15,7 @@ export function calculateMonthlyIncome(incomes: Income[]): number {
       case 'monthly':
         return total + income.amount;
       case 'biweekly':
-        return total + (income.amount * 26) / 12;
+        return total + income.amount * 2;
       case 'once':
         return total + income.amount / 12;
       default:
