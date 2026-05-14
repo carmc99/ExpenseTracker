@@ -1,0 +1,166 @@
+{
+  "version": "1.0",
+  "config": {
+    "currency": "COP",
+    "rule": {
+      "needs": 50,
+      "leisure": 20,
+      "savings": 30
+    },
+    "categories": [
+      {
+        "id": "1",
+        "name": "Arriendo / Hipoteca",
+        "rubro": "needs"
+      },
+      {
+        "id": "2",
+        "name": "Supermercado",
+        "rubro": "needs"
+      },
+      {
+        "id": "3",
+        "name": "Servicios",
+        "rubro": "needs"
+      },
+      {
+        "id": "4",
+        "name": "Salud",
+        "rubro": "needs"
+      },
+      {
+        "id": "5",
+        "name": "Transporte",
+        "rubro": "needs"
+      },
+      {
+        "id": "6",
+        "name": "Streaming",
+        "rubro": "leisure"
+      },
+      {
+        "id": "7",
+        "name": "Restaurantes",
+        "rubro": "leisure"
+      },
+      {
+        "id": "8",
+        "name": "Viajes",
+        "rubro": "leisure"
+      },
+      {
+        "id": "9",
+        "name": "Entretenimiento",
+        "rubro": "leisure"
+      },
+      {
+        "id": "10",
+        "name": "Inversiones",
+        "rubro": "savings"
+      },
+      {
+        "id": "11",
+        "name": "Ahorro",
+        "rubro": "savings"
+      }
+    ]
+  },
+  "incomes": [
+    {
+      "source": "Salario",
+      "amount": 7200000,
+      "frequency": "monthly",
+      "id": "ee400e47-cb1f-4d91-81f3-d477cb83ebd8",
+      "createdAt": "2026-05-14T16:30:38.673Z"
+    },
+    {
+      "source": "Erick",
+      "amount": 550000,
+      "frequency": "biweekly",
+      "id": "0f0f72eb-708f-44df-9fac-b677701e32db",
+      "createdAt": "2026-05-14T17:16:21.679Z"
+    }
+  ],
+  "expenses": [
+    {
+      "concept": "Arriendo",
+      "amount": 1370000,
+      "type": "fixed",
+      "category": "Arriendo / Hipoteca",
+      "rubro": "needs",
+      "date": "2026-05-14",
+      "period": "2026-05",
+      "id": "75e46878-51cd-4836-bbf6-51e42760d401"
+    },
+    {
+      "concept": "Spotify",
+      "amount": 17000,
+      "type": "fixed",
+      "category": "Entretenimiento",
+      "rubro": "leisure",
+      "date": "2026-05-14",
+      "period": "2026-05",
+      "id": "b9508c00-ee3d-40a8-9183-cd26c236beeb"
+    },
+    {
+      "concept": "Gimnasio",
+      "amount": 99900,
+      "type": "fixed",
+      "category": "Salud",
+      "rubro": "needs",
+      "date": "2026-05-14",
+      "period": "2026-05",
+      "id": "f65a0940-07db-4664-a024-aa18d665a761"
+    },
+    {
+      "concept": "Internet",
+      "amount": 139900,
+      "type": "fixed",
+      "category": "Servicios",
+      "rubro": "needs",
+      "date": "2026-05-14",
+      "period": "2026-05",
+      "id": "a9a6dfa5-2c00-42ce-89c0-1629b4cc7adc"
+    },
+    {
+      "concept": "Servicios publicos",
+      "amount": 510000,
+      "type": "fixed",
+      "category": "Servicios",
+      "rubro": "needs",
+      "date": "2026-05-14",
+      "period": "2026-05",
+      "id": "4c9c18b8-a6dc-470d-9963-2cab8282cbf2"
+    },
+    {
+      "concept": "Medicina prepagada",
+      "amount": 481000,
+      "type": "fixed",
+      "category": "Salud",
+      "rubro": "needs",
+      "date": "2026-05-14",
+      "period": "2026-05",
+      "id": "abe8f1a1-8b85-45ca-8de4-787f6db1aecd"
+    },
+    {
+      "concept": "Telefonia",
+      "amount": 33000,
+      "type": "fixed",
+      "category": "Servicios",
+      "rubro": "needs",
+      "date": "2026-05-14",
+      "period": "2026-05",
+      "id": "7b8d31be-8ebc-45b8-a7f0-f63a9cbbf474"
+    },
+    {
+      "concept": "Mercado",
+      "amount": 1700000,
+      "type": "fixed",
+      "category": "Supermercado",
+      "rubro": "needs",
+      "date": "2026-05-14",
+      "period": "2026-05",
+      "id": "2c5a2e43-4e16-4b1a-9618-28651d860ba3"
+    }
+  ]
+}
