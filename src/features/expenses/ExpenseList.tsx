@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Badge } from '@/components/ui/badge';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Plus, Pencil, Trash2, Search, Home, ShoppingCart, Tv, Car, Heart, Briefcase, Sparkles, PiggyBank } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, Home, ShoppingCart, Tv, Car, Heart, Briefcase, Sparkles, PiggyBank, Zap } from 'lucide-react';
 import { format } from 'date-fns';
 
 const expenseTypes: { value: ExpenseType; label: string }[] = [
@@ -37,7 +37,8 @@ const getCategoryIcon = (category: string) => {
   if (lower.includes('inversion')) return Briefcase;
   if (lower.includes('ocio')) return Sparkles;
   if (lower.includes('ahorro')) return PiggyBank;
-  return ShoppingCart;
+  if (lower.includes('servicio')) return Zap;
+  return Zap;
 };
 
 interface ExpenseFormData {
