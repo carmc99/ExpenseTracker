@@ -1,17 +1,18 @@
 import { createContext, useContext, useReducer, useEffect, type ReactNode } from 'react';
 import type { AppData, Income, Expense, AppConfig, Category } from '../types';
 import { storageService } from '../services/storageService';
-import { roundForCurrency } from '../services/exchangeRateService';
+import { getExchangeRate } from '../services/exchangeRateService';
 
 interface AppState extends AppData {
   isLoading: boolean;
+  exchangeRate: number;
 }
 
 type AppAction =
   | { type: 'LOAD_DATA'; payload: AppData }
   | { type: 'SET_LOADING'; payload: boolean }
   | { type: 'SET_CONFIG'; payload: AppConfig }
-  | { type: 'CONVERT_CURRENCY'; payload: AppData }
+  | { type: 'SET_EXCHANGE_RATE'; payload: number }
   | { type: 'ADD_INCOME'; payload: Income }
   | { type: 'UPDATE_INCOME'; payload: Income }
   | { type: 'DELETE_INCOME'; payload: string }
@@ -35,13 +36,8 @@ function appReducer(state: AppState, action: AppAction): AppState {
       return { ...state, isLoading: action.payload };
     case 'SET_CONFIG':
       return { ...state, config: action.payload };
-    case 'CONVERT_CURRENCY':
-      return {
-        ...state,
-        config: action.payload.config,
-        incomes: action.payload.incomes,
-        expenses: action.payload.expenses,
-      };
+    case 'SET_EXCHANGE_RATE':
+      return { ...state, exchangeRate: action.payload };
     case 'ADD_INCOME':
       return { ...state, incomes: [...state.incomes, action.payload] };
     case 'UPDATE_INCOME':
@@ -81,9 +77,10 @@ function appReducer(state: AppState, action: AppAction): AppState {
     case 'RESET_DATA':
       return {
         ...state,
-        config: { currency: 'USD', rule: { needs: 50, leisure: 30, savings: 20 }, categories: [] },
+        config: { currency: 'COP', rule: { needs: 50, leisure: 30, savings: 20 }, categories: [] },
         incomes: [],
         expenses: [],
+        exchangeRate: 1,
         isLoading: false,
       };
     default:
@@ -93,10 +90,11 @@ function appReducer(state: AppState, action: AppAction): AppState {
 
 const initialState: AppState = {
   version: '1.0',
-  config: { currency: 'USD', rule: { needs: 50, leisure: 30, savings: 20 }, categories: [] },
+  config: { currency: 'COP', rule: { needs: 50, leisure: 30, savings: 20 }, categories: [] },
   incomes: [],
   expenses: [],
   isLoading: true,
+  exchangeRate: 1,
 };
 
 interface AppContextValue {
@@ -109,7 +107,8 @@ interface AppContextValue {
   updateExpense: (id: string, updates: Partial<Expense>) => void;
   deleteExpense: (id: string) => void;
   updateConfig: (config: Partial<AppConfig>) => void;
-  changeCurrency: (currency: string, rate: number) => void;
+  changeCurrency: (currency: string) => Promise<void>;
+  toDisplay: (amount: number) => number;
   addCategory: (category: Omit<Category, 'id'>) => void;
   updateCategory: (id: string, updates: Partial<Category>) => void;
   deleteCategory: (id: string) => void;
@@ -126,6 +125,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const data = storageService.getData();
     dispatch({ type: 'LOAD_DATA', payload: data });
+
+    if (data.config.currency === 'USD') {
+      getExchangeRate('COP', 'USD')
+        .then((rate) => dispatch({ type: 'SET_EXCHANGE_RATE', payload: rate }))
+        .catch(() => {/* amounts show as COP values until next reload */});
+    }
   }, []);
 
   const addIncome = (income: Omit<Income, 'id' | 'createdAt'>) => {
@@ -161,11 +166,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'SET_CONFIG', payload: updated });
   };
 
-  const changeCurrency = (currency: string, rate: number) => {
-    const round = (n: number) => roundForCurrency(n, currency);
-    const converted = storageService.convertCurrency(currency, rate, round);
-    dispatch({ type: 'CONVERT_CURRENCY', payload: converted });
+  const changeCurrency = async (currency: string) => {
+    const rate = currency === 'USD' ? await getExchangeRate('COP', 'USD') : 1;
+    const updated = storageService.updateConfig({ currency });
+    dispatch({ type: 'SET_CONFIG', payload: updated });
+    dispatch({ type: 'SET_EXCHANGE_RATE', payload: rate });
   };
+
+  const toDisplay = (amount: number) => amount * state.exchangeRate;
 
   const addCategory = (category: Omit<Category, 'id'>) => {
     const newCategory = storageService.addCategory(category);
@@ -221,6 +229,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         deleteExpense,
         updateConfig,
         changeCurrency,
+        toDisplay,
         addCategory,
         updateCategory,
         deleteCategory,

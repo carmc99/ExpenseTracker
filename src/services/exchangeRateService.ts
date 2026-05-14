@@ -44,7 +44,3 @@ export async function getExchangeRate(from: string, to: string): Promise<number>
   saveCache(cache);
   return rate;
 }
-
-export function roundForCurrency(amount: number, currency: string): number {
-  return currency === 'COP' ? Math.round(amount) : Math.round(amount * 100) / 100;
-}

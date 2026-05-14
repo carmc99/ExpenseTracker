@@ -18,7 +18,7 @@ const DEFAULT_CATEGORIES: Category[] = [
 ];
 
 const DEFAULT_CONFIG: AppConfig = {
-  currency: 'USD',
+  currency: 'COP',
   rule: {
     needs: 50,
     leisure: 30,
@@ -193,15 +193,4 @@ export const storageService = {
     return true;
   },
 
-  convertCurrency(currency: string, rate: number, round: (n: number) => number): AppData {
-    const data = getInitialData();
-    const converted: AppData = {
-      ...data,
-      config: { ...data.config, currency },
-      incomes: data.incomes.map((i) => ({ ...i, amount: round(i.amount * rate) })),
-      expenses: data.expenses.map((e) => ({ ...e, amount: round(e.amount * rate) })),
-    };
-    saveData(converted);
-    return converted;
-  },
 };

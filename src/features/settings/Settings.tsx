@@ -2,7 +2,6 @@ import { useState, useEffect, useMemo } from 'react';
 import { useApp } from '@/context/AppContext';
 import { formatCurrency } from '@/lib/utils';
 import { calculateMonthlyIncome } from '@/lib/calculations';
-import { getExchangeRate } from '@/services/exchangeRateService';
 import type { Category, Rubro } from '@/types';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,8 +15,8 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Plus, Pencil, Trash2, Download, Upload, RotateCcw, CheckCircle2, Loader2 } from 'lucide-react';
 
 const CURRENCIES = [
-  { value: 'USD', label: 'USD - Dólar estadounidense' },
   { value: 'COP', label: 'COP - Peso colombiano' },
+  { value: 'USD', label: 'USD - Dólar estadounidense' },
 ];
 
 const RUBRO_OPTIONS: { value: Rubro; label: string; color: string }[] = [
@@ -29,7 +28,7 @@ const RUBRO_OPTIONS: { value: Rubro; label: string; color: string }[] = [
 const DEFAULT_SAMPLE_INCOME = 1500000;
 
 export function Settings() {
-  const { state, updateConfig, changeCurrency, addCategory, updateCategory, deleteCategory, resetData, exportData, importData } = useApp();
+  const { state, updateConfig, changeCurrency, toDisplay, addCategory, updateCategory, deleteCategory, resetData, exportData, importData } = useApp();
 
   const actualMonthlyIncome = useMemo(() => calculateMonthlyIncome(state.incomes), [state.incomes]);
   const previewIncome = actualMonthlyIncome > 0 ? actualMonthlyIncome : DEFAULT_SAMPLE_INCOME;
@@ -74,8 +73,7 @@ export function Settings() {
     setIsCurrencyLoading(true);
     setCurrencyError(null);
     try {
-      const rate = await getExchangeRate(state.config.currency, newCurrency);
-      changeCurrency(newCurrency, rate);
+      await changeCurrency(newCurrency);
     } catch {
       setCurrencyError('No se pudo obtener el tipo de cambio. Verifica tu conexión e intenta de nuevo.');
     } finally {
@@ -226,22 +224,22 @@ export function Settings() {
                 <p className="text-sm font-medium">Vista previa</p>
                 <p className="text-xs text-muted-foreground">
                   {actualMonthlyIncome > 0
-                    ? `Basado en tu ingreso: ${formatCurrency(actualMonthlyIncome, state.config.currency)}`
-                    : `Ingreso de referencia: ${formatCurrency(DEFAULT_SAMPLE_INCOME, state.config.currency)}`}
+                    ? `Basado en tu ingreso: ${formatCurrency(toDisplay(actualMonthlyIncome), state.config.currency)}`
+                    : `Ingreso de referencia: ${formatCurrency(toDisplay(DEFAULT_SAMPLE_INCOME), state.config.currency)}`}
                 </p>
               </div>
               <div className="grid grid-cols-3 gap-2 text-center">
                 <div>
                   <p className="text-xs text-muted-foreground">Necesidades</p>
-                  <p className="font-semibold">{formatCurrency(previewIncome * (ruleValues.needs / 100), state.config.currency)}</p>
+                  <p className="font-semibold">{formatCurrency(toDisplay(previewIncome * (ruleValues.needs / 100)), state.config.currency)}</p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Ocio</p>
-                  <p className="font-semibold">{formatCurrency(previewIncome * (ruleValues.leisure / 100), state.config.currency)}</p>
+                  <p className="font-semibold">{formatCurrency(toDisplay(previewIncome * (ruleValues.leisure / 100)), state.config.currency)}</p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Ahorro</p>
-                  <p className="font-semibold">{formatCurrency(previewIncome * (ruleValues.savings / 100), state.config.currency)}</p>
+                  <p className="font-semibold">{formatCurrency(toDisplay(previewIncome * (ruleValues.savings / 100)), state.config.currency)}</p>
                 </div>
               </div>
             </div>
@@ -290,7 +288,7 @@ export function Settings() {
             <Separator className="my-4" />
             <div className="space-y-1">
               <p className="text-sm font-medium">Vista previa</p>
-              <p className="text-lg font-semibold">{formatCurrency(previewIncome, state.config.currency)}</p>
+              <p className="text-lg font-semibold">{formatCurrency(toDisplay(previewIncome), state.config.currency)}</p>
               <p className="text-xs text-muted-foreground">
                 {actualMonthlyIncome > 0 ? 'Tu ingreso mensual' : 'Valor de referencia'}
               </p>
