@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useApp } from '@/context/AppContext';
+import { useTheme } from '@/context/ThemeContext';
 import { formatCurrency } from '@/lib/utils';
 import { calculateMonthlyIncome } from '@/lib/calculations';
 import type { Category, Rubro } from '@/types';
@@ -11,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Slider } from '@/components/ui/slider';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Plus, Pencil, Trash2, Download, Upload, RotateCcw, CheckCircle2, Loader2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, Download, Upload, RotateCcw, CheckCircle2, Loader2, Sun, Moon, Monitor } from 'lucide-react';
 
 const CURRENCIES = [
   { value: 'COP', label: 'COP - Peso colombiano' },
@@ -26,8 +27,15 @@ const RUBRO_OPTIONS: { value: Rubro; label: string; color: string }[] = [
 
 const DEFAULT_SAMPLE_INCOME = 1500000;
 
+const THEME_OPTIONS = [
+  { value: 'light' as const, label: 'Claro', icon: Sun },
+  { value: 'dark' as const, label: 'Oscuro', icon: Moon },
+  { value: 'system' as const, label: 'Sistema', icon: Monitor },
+];
+
 export function Settings() {
   const { state, updateConfig, changeCurrency, toDisplay, addCategory, updateCategory, deleteCategory, resetData, exportData, importData } = useApp();
+  const { theme, setTheme } = useTheme();
 
   const actualMonthlyIncome = useMemo(() => calculateMonthlyIncome(state.incomes), [state.incomes]);
   const previewIncome = actualMonthlyIncome > 0 ? actualMonthlyIncome : DEFAULT_SAMPLE_INCOME;
@@ -151,6 +159,28 @@ export function Settings() {
         <h2 className="text-2xl font-bold">Configuración</h2>
         <p className="text-muted-foreground">Personaliza la aplicación y gestiona tus datos</p>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Apariencia</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex gap-3">
+            {THEME_OPTIONS.map(({ value, label, icon: Icon }) => (
+              <button
+                key={value}
+                onClick={() => setTheme(value)}
+                className={`flex flex-1 flex-col items-center gap-2 rounded-lg border p-4 transition-colors ${
+                  theme === value ? 'border-primary bg-primary/10 text-primary' : 'hover:bg-accent'
+                }`}
+              >
+                <Icon className="h-5 w-5" />
+                <span className="text-sm font-medium">{label}</span>
+              </button>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
