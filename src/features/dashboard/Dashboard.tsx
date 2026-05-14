@@ -276,8 +276,15 @@ export function Dashboard() {
                       <span className="text-xs">/ {formatCurrency(savingsTarget, state.config.currency)}</span>
                     </span>
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    Ingreso − Necesidades − Ocio
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    {formatCurrency(monthlyIncome, state.config.currency)}{' '}
+                    <span className="opacity-60">(ingreso)</span>
+                    {' − '}
+                    {formatCurrency(spentByRubro.needs, state.config.currency)}{' '}
+                    <span className="opacity-60">(nec.)</span>
+                    {' − '}
+                    {formatCurrency(spentByRubro.leisure, state.config.currency)}{' '}
+                    <span className="opacity-60">(ocio)</span>
                   </p>
                   <Progress
                     value={progressValue}
