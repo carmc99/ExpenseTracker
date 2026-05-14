@@ -192,4 +192,16 @@ export const storageService = {
     saveData(data);
     return true;
   },
+
+  convertCurrency(currency: string, rate: number, round: (n: number) => number): AppData {
+    const data = getInitialData();
+    const converted: AppData = {
+      ...data,
+      config: { ...data.config, currency },
+      incomes: data.incomes.map((i) => ({ ...i, amount: round(i.amount * rate) })),
+      expenses: data.expenses.map((e) => ({ ...e, amount: round(e.amount * rate) })),
+    };
+    saveData(converted);
+    return converted;
+  },
 };

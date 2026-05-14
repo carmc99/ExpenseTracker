@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useApp } from '@/context/AppContext';
 import { formatCurrency } from '@/lib/utils';
 import { calculateMonthlyIncome } from '@/lib/calculations';
+import { getExchangeRate } from '@/services/exchangeRateService';
 import type { Category, Rubro } from '@/types';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,7 +13,7 @@ import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { Slider } from '@/components/ui/slider';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Plus, Pencil, Trash2, Download, Upload, RotateCcw, CheckCircle2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, Download, Upload, RotateCcw, CheckCircle2, Loader2 } from 'lucide-react';
 
 const CURRENCIES = [
   { value: 'USD', label: 'USD - Dólar estadounidense' },
@@ -28,7 +29,7 @@ const RUBRO_OPTIONS: { value: Rubro; label: string; color: string }[] = [
 const DEFAULT_SAMPLE_INCOME = 1500000;
 
 export function Settings() {
-  const { state, updateConfig, addCategory, updateCategory, deleteCategory, resetData, exportData, importData } = useApp();
+  const { state, updateConfig, changeCurrency, addCategory, updateCategory, deleteCategory, resetData, exportData, importData } = useApp();
 
   const actualMonthlyIncome = useMemo(() => calculateMonthlyIncome(state.incomes), [state.incomes]);
   const previewIncome = actualMonthlyIncome > 0 ? actualMonthlyIncome : DEFAULT_SAMPLE_INCOME;
@@ -42,6 +43,8 @@ export function Settings() {
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [categoryForm, setCategoryForm] = useState({ name: '', rubro: 'needs' as Rubro });
   const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
+  const [isCurrencyLoading, setIsCurrencyLoading] = useState(false);
+  const [currencyError, setCurrencyError] = useState<string | null>(null);
 
   useEffect(() => {
     setRuleValues({
@@ -66,8 +69,18 @@ export function Settings() {
     }
   };
 
-  const handleCurrencyChange = (currency: string) => {
-    updateConfig({ currency });
+  const handleCurrencyChange = async (newCurrency: string) => {
+    if (newCurrency === state.config.currency || isCurrencyLoading) return;
+    setIsCurrencyLoading(true);
+    setCurrencyError(null);
+    try {
+      const rate = await getExchangeRate(state.config.currency, newCurrency);
+      changeCurrency(newCurrency, rate);
+    } catch {
+      setCurrencyError('No se pudo obtener el tipo de cambio. Verifica tu conexión e intenta de nuevo.');
+    } finally {
+      setIsCurrencyLoading(false);
+    }
   };
 
   const handleOpenCategoryDialog = (category?: Category) => {
@@ -237,14 +250,26 @@ export function Settings() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Moneda</CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle>Moneda</CardTitle>
+              {isCurrencyLoading && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Convirtiendo valores...
+                </div>
+              )}
+            </div>
           </CardHeader>
           <CardContent>
             <div className="grid gap-2">
               {CURRENCIES.map((currency) => (
                 <label
                   key={currency.value}
-                  className="flex items-center gap-3 rounded-lg border p-3 cursor-pointer hover:bg-accent transition-colors"
+                  className={`flex items-center gap-3 rounded-lg border p-3 transition-colors ${
+                    isCurrencyLoading
+                      ? 'cursor-not-allowed opacity-60'
+                      : 'cursor-pointer hover:bg-accent'
+                  }`}
                 >
                   <input
                     type="radio"
@@ -252,16 +277,23 @@ export function Settings() {
                     value={currency.value}
                     checked={state.config.currency === currency.value}
                     onChange={() => handleCurrencyChange(currency.value)}
+                    disabled={isCurrencyLoading}
                     className="h-4 w-4"
                   />
                   <span className="font-medium">{currency.label}</span>
                 </label>
               ))}
             </div>
+            {currencyError && (
+              <p className="mt-3 text-sm text-destructive">{currencyError}</p>
+            )}
             <Separator className="my-4" />
-            <div className="space-y-2">
+            <div className="space-y-1">
               <p className="text-sm font-medium">Vista previa</p>
-              <p className="text-lg font-semibold">{formatCurrency(1500000, state.config.currency)}</p>
+              <p className="text-lg font-semibold">{formatCurrency(previewIncome, state.config.currency)}</p>
+              <p className="text-xs text-muted-foreground">
+                {actualMonthlyIncome > 0 ? 'Tu ingreso mensual' : 'Valor de referencia'}
+              </p>
             </div>
           </CardContent>
         </Card>
