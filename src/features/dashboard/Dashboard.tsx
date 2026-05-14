@@ -223,81 +223,93 @@ export function Dashboard() {
               );
             })}
 
-            {/* Disponible para ahorrar: sobrante después de cubrir la meta de ahorro */}
+            {/* Disponible para ahorrar */}
             {(() => {
               const savingsTarget = budgetByRubro.savings;
               const realSavings = monthlyIncome - spentByRubro.needs - spentByRubro.leisure;
-              // Cuánto queda libre una vez descontada la meta comprometida
               const disponible = realSavings - savingsTarget;
               const progressValue = savingsTarget > 0
                 ? Math.min(Math.max(0, realSavings) / savingsTarget * 100, 100)
                 : 0;
 
-              let variant: 'success' | 'warning' | 'danger';
-              let badgeLabel: string;
-              let diffLabel: string;
-              let diffColor: string;
-              let progressColor: string;
-
-              if (realSavings < 0) {
-                variant = 'danger';
-                badgeLabel = 'Déficit';
-                diffLabel = `Los gastos superan los ingresos en ${formatCurrency(toDisplay(Math.abs(realSavings)), state.config.currency)}`;
-                diffColor = 'text-red-500';
-                progressColor = '#ef4444';
-              } else if (disponible >= 0) {
-                variant = 'success';
-                badgeLabel = 'Meta cumplida';
-                diffLabel = disponible > 0
-                  ? `Disponible tras la meta: ${formatCurrency(toDisplay(disponible), state.config.currency)}`
-                  : 'Meta de ahorro exactamente cumplida';
-                diffColor = 'text-green-600';
-                progressColor = '#22c55e';
-              } else {
-                const faltante = Math.abs(disponible);
-                const ratio = realSavings / savingsTarget;
-                variant = ratio >= 0.85 ? 'warning' : 'warning';
-                badgeLabel = ratio >= 0.85 ? 'Cerca' : 'Por debajo';
-                diffLabel = `Faltan ${formatCurrency(toDisplay(faltante), state.config.currency)} para cumplir la meta`;
-                diffColor = ratio >= 0.85 ? 'text-yellow-600' : 'text-orange-500';
-                progressColor = ratio >= 0.85 ? '#eab308' : '#f97316';
-              }
+              const metaCumplida = disponible >= 0;
+              const deficit = realSavings < 0;
 
               return (
-                <div className="space-y-2">
+                <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">Disponible para ahorrar</span>
-                      <Badge variant={variant} className="text-xs">
-                        {badgeLabel}
-                      </Badge>
-                    </div>
-                    <span className="text-sm font-medium text-muted-foreground">
-                      {formatCurrency(toDisplay(Math.max(0, realSavings)), state.config.currency)}{' '}
-                      <span className="text-xs">/ {formatCurrency(toDisplay(savingsTarget), state.config.currency)} meta</span>
-                    </span>
+                    <span className="font-medium">Ahorro</span>
+                    <Badge
+                      variant={deficit ? 'danger' : metaCumplida ? 'success' : progressValue >= 85 ? 'warning' : 'outline'}
+                      className="text-xs"
+                    >
+                      {deficit ? 'Déficit' : metaCumplida ? 'Meta cumplida ✓' : progressValue >= 85 ? 'Casi lista' : 'En progreso'}
+                    </Badge>
                   </div>
-                  <p className="text-xs text-muted-foreground leading-relaxed">
-                    {formatCurrency(toDisplay(monthlyIncome), state.config.currency)}{' '}
-                    <span className="opacity-60">(ingreso)</span>
-                    {' − '}
-                    {formatCurrency(toDisplay(spentByRubro.needs), state.config.currency)}{' '}
-                    <span className="opacity-60">(nec.)</span>
-                    {' − '}
-                    {formatCurrency(toDisplay(spentByRubro.leisure), state.config.currency)}{' '}
-                    <span className="opacity-60">(ocio)</span>
-                    {' − '}
-                    {formatCurrency(toDisplay(savingsTarget), state.config.currency)}{' '}
-                    <span className="opacity-60">(meta ahorro)</span>
-                  </p>
-                  <Progress
-                    value={progressValue}
-                    className="h-3"
-                    style={{ '--progress-color': progressColor } as React.CSSProperties}
-                  />
-                  <p className={`text-xs font-medium ${diffColor}`}>
-                    {diffLabel}
-                  </p>
+
+                  {/* Meta vs disponible */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="rounded-lg bg-muted p-3">
+                      <p className="text-xs text-muted-foreground mb-1">Meta mensual</p>
+                      <p className="text-base font-bold">{formatCurrency(toDisplay(savingsTarget), state.config.currency)}</p>
+                      <p className="text-xs text-muted-foreground">{state.config.rule.savings}% del ingreso</p>
+                    </div>
+                    <div className="rounded-lg bg-muted p-3">
+                      <p className="text-xs text-muted-foreground mb-1">Disponible para ahorrar</p>
+                      <p className={`text-base font-bold ${deficit ? 'text-red-500' : 'text-foreground'}`}>
+                        {formatCurrency(toDisplay(Math.max(0, realSavings)), state.config.currency)}
+                      </p>
+                      <p className="text-xs text-muted-foreground">Ingreso − Nec. − Ocio</p>
+                    </div>
+                  </div>
+
+                  {/* Barra de progreso hacia la meta */}
+                  <div className="space-y-1">
+                    <div className="flex justify-between text-xs text-muted-foreground">
+                      <span>Progreso hacia la meta</span>
+                      <span>{Math.min(progressValue, 100).toFixed(0)}%</span>
+                    </div>
+                    <Progress
+                      value={progressValue}
+                      className="h-2"
+                      style={{
+                        '--progress-color': deficit ? '#ef4444' : metaCumplida ? '#22c55e' : progressValue >= 85 ? '#eab308' : '#f97316',
+                      } as React.CSSProperties}
+                    />
+                  </div>
+
+                  {/* Insight principal */}
+                  {deficit ? (
+                    <div className="rounded-lg bg-red-500/10 border border-red-500/20 p-3 flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-semibold text-red-600 dark:text-red-400">Gastos mayores al ingreso</p>
+                        <p className="text-xs text-muted-foreground">Necesidades + Ocio superan lo que ganas</p>
+                      </div>
+                      <p className="text-lg font-bold text-red-500">
+                        −{formatCurrency(toDisplay(Math.abs(realSavings)), state.config.currency)}
+                      </p>
+                    </div>
+                  ) : metaCumplida ? (
+                    <div className="rounded-lg bg-green-500/10 border border-green-500/20 p-3 flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-semibold text-green-700 dark:text-green-400">Excedente libre</p>
+                        <p className="text-xs text-muted-foreground">Libre después de cubrir tu meta</p>
+                      </div>
+                      <p className="text-lg font-bold text-green-600">
+                        +{formatCurrency(toDisplay(disponible), state.config.currency)}
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="rounded-lg bg-orange-500/10 border border-orange-500/20 p-3 flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-semibold text-orange-700 dark:text-orange-400">Aún te faltan</p>
+                        <p className="text-xs text-muted-foreground">para alcanzar tu meta este mes</p>
+                      </div>
+                      <p className="text-lg font-bold text-orange-500">
+                        {formatCurrency(toDisplay(Math.abs(disponible)), state.config.currency)}
+                      </p>
+                    </div>
+                  )}
                 </div>
               );
             })()}
