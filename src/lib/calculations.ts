@@ -15,7 +15,7 @@ export function calculateMonthlyIncome(incomes: Income[]): number {
       case 'monthly':
         return total + income.amount;
       case 'biweekly':
-        return total + (income.amount * 26) / 12;
+        return total + income.amount * 2;
       case 'once':
         return total + income.amount / 12;
       default:
@@ -174,16 +174,16 @@ export function calculateProjections(
 
   switch (params.pessimisticVariation) {
     case 'income_plus_10':
-      pessimisticVariation = monthlyIncome * 0.1;
-      break;
-    case 'income_minus_10':
       pessimisticVariation = -monthlyIncome * 0.1;
       break;
+    case 'income_minus_10':
+      pessimisticVariation = monthlyIncome * 0.1;
+      break;
     case 'expense_plus_10':
-      pessimisticVariation = monthlyExpenses * 0.1;
+      pessimisticVariation = -monthlyExpenses * 0.1;
       break;
     case 'expense_minus_10':
-      pessimisticVariation = -monthlyExpenses * 0.1;
+      pessimisticVariation = monthlyExpenses * 0.1;
       break;
   }
 

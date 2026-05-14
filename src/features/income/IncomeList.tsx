@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useApp } from '@/context/AppContext';
 import { formatCurrency } from '@/lib/utils';
-import { calculateMonthlyIncome, calculateBudgetByRubro } from '@/lib/calculations';
+import { calculateMonthlyIncome } from '@/lib/calculations';
 import type { Income, Frequency } from '@/types';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,7 +9,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Plus, Pencil, Trash2, Briefcase, TrendingUp } from 'lucide-react';
@@ -39,7 +38,6 @@ export function IncomeList() {
   const [formData, setFormData] = useState<IncomeFormData>(initialFormData);
 
   const monthlyIncome = calculateMonthlyIncome(state.incomes);
-  const budgetByRubro = calculateBudgetByRubro(monthlyIncome, state.config.rule);
 
   const handleOpenDialog = (income?: Income) => {
     if (income) {
@@ -112,40 +110,6 @@ export function IncomeList() {
           </CardContent>
         </Card>
       </div>
-
-      <Separator />
-
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold">Objetivo con regla 50/30/20</h3>
-        <div className="grid gap-4 md:grid-cols-3">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Necesidades 50%</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-xl font-bold">{formatCurrency(toDisplay(budgetByRubro.needs), state.config.currency)}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Ocio 30%</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-xl font-bold">{formatCurrency(toDisplay(budgetByRubro.leisure), state.config.currency)}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Ahorro 20%</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-xl font-bold">{formatCurrency(toDisplay(budgetByRubro.savings), state.config.currency)}</div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-
-      <Separator />
 
       <div className="space-y-4">
         <h3 className="text-lg font-semibold">Fuentes de ingreso registradas</h3>
