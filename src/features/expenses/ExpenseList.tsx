@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Badge } from '@/components/ui/badge';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Plus, Pencil, Trash2, Search, Home, ShoppingCart, Tv, Car, Heart, Briefcase, Sparkles, PiggyBank } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, Home, ShoppingCart, Tv, Car, Heart, Briefcase, Sparkles, PiggyBank, Zap } from 'lucide-react';
 import { format } from 'date-fns';
 
 const expenseTypes: { value: ExpenseType; label: string }[] = [
@@ -19,11 +19,13 @@ const expenseTypes: { value: ExpenseType; label: string }[] = [
   { value: 'variable', label: 'Variable' },
 ];
 
-const rubroOptions: { value: Rubro; label: string; color: string }[] = [
-  { value: 'needs', label: 'Necesidades', color: 'bg-blue-500' },
-  { value: 'leisure', label: 'Ocio', color: 'bg-purple-500' },
-  { value: 'savings', label: 'Ahorro', color: 'bg-green-500' },
+const rubroOptions: { value: Rubro; label: string; bgClass: string; textClass: string }[] = [
+  { value: 'needs', label: 'Necesidades', bgClass: 'bg-blue-500/10', textClass: 'text-blue-500' },
+  { value: 'leisure', label: 'Ocio', bgClass: 'bg-purple-500/10', textClass: 'text-purple-500' },
+  { value: 'savings', label: 'Ahorro', bgClass: 'bg-green-500/10', textClass: 'text-green-500' },
 ];
+
+const expenseRubroOptions = rubroOptions.filter((r) => r.value !== 'savings');
 
 const getCategoryIcon = (category: string) => {
   const lower = category.toLowerCase();
@@ -35,7 +37,8 @@ const getCategoryIcon = (category: string) => {
   if (lower.includes('inversion')) return Briefcase;
   if (lower.includes('ocio')) return Sparkles;
   if (lower.includes('ahorro')) return PiggyBank;
-  return ShoppingCart;
+  if (lower.includes('servicio')) return Zap;
+  return Zap;
 };
 
 interface ExpenseFormData {
@@ -243,8 +246,8 @@ export function ExpenseList() {
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <div className={`p-2 rounded-lg ${rubroOptions.find((r) => r.value === expense.rubro)?.color} bg-opacity-10`}>
-                          <CategoryIcon className={`h-5 w-5 ${rubroOptions.find((r) => r.value === expense.rubro)?.color.replace('bg-', 'text-')}`} />
+                        <div className={`p-2 rounded-lg ${rubroOptions.find((r) => r.value === expense.rubro)?.bgClass}`}>
+                          <CategoryIcon className={`h-5 w-5 ${rubroOptions.find((r) => r.value === expense.rubro)?.textClass}`} />
                         </div>
                         <div>
                           <p className="font-medium">{expense.concept}</p>
@@ -376,7 +379,7 @@ export function ExpenseList() {
                   <SelectValue placeholder="Selecciona el rubro" />
                 </SelectTrigger>
                 <SelectContent>
-                  {rubroOptions.map((r) => (
+                  {expenseRubroOptions.map((r) => (
                     <SelectItem key={r.value} value={r.value}>
                       {r.label}
                     </SelectItem>

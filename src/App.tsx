@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { AppProvider } from '@/context/AppContext';
+import { ThemeProvider, useTheme } from '@/context/ThemeContext';
 import { Dashboard } from '@/features/dashboard/Dashboard';
 import { ExpenseList } from '@/features/expenses/ExpenseList';
 import { IncomeList } from '@/features/income/IncomeList';
 import { Projections } from '@/features/projections/Projections';
 import { Settings } from '@/features/settings/Settings';
 import { Button } from '@/components/ui/button';
-import { Wallet, LayoutDashboard, Receipt, TrendingUp, Settings as SettingsIcon } from 'lucide-react';
+import { Wallet, LayoutDashboard, Receipt, TrendingUp, Settings as SettingsIcon, Sun, Moon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 type View = 'dashboard' | 'expenses' | 'income' | 'projections' | 'settings';
@@ -81,6 +82,7 @@ function AppContent() {
               );
             })}
           </nav>
+          <ThemeToggle />
         </div>
       </header>
       <main className="container px-4 py-6">
@@ -90,11 +92,22 @@ function AppContent() {
   );
 }
 
+function ThemeToggle() {
+  const { resolvedTheme, toggleTheme } = useTheme();
+  return (
+    <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Cambiar tema">
+      {resolvedTheme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+    </Button>
+  );
+}
+
 function App() {
   return (
-    <AppProvider>
-      <AppContent />
-    </AppProvider>
+    <ThemeProvider>
+      <AppProvider>
+        <AppContent />
+      </AppProvider>
+    </ThemeProvider>
   );
 }
 

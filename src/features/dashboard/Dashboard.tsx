@@ -150,15 +150,15 @@ export function Dashboard() {
       <Separator />
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <Card>
+        <Card className="flex flex-col">
           <CardHeader>
             <CardTitle>Gasto por categoría</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="flex-1 flex flex-col">
             {categoryData.length === 0 ? (
               <p className="text-center text-muted-foreground py-8">No hay gastos en este período</p>
             ) : (
-              <div className="h-[300px]">
+              <div className="flex-1 min-h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={categoryData} layout="vertical" margin={{ left: 20 }}>
                     <XAxis type="number" tickFormatter={(v) => formatCurrency(toDisplay(v), state.config.currency).replace(/\s/g, '')} />
@@ -223,77 +223,93 @@ export function Dashboard() {
               );
             })}
 
-            {/* Ahorro: calculado como sobrante real (Ingreso − Necesidades − Ocio) */}
+            {/* Disponible para ahorrar */}
             {(() => {
               const savingsTarget = budgetByRubro.savings;
               const realSavings = monthlyIncome - spentByRubro.needs - spentByRubro.leisure;
-              const savingsRatio = savingsTarget > 0 ? realSavings / savingsTarget : 0;
-              const progressValue = savingsTarget > 0 ? Math.min(Math.max(0, realSavings) / savingsTarget * 100, 100) : 0;
+              const disponible = realSavings - savingsTarget;
+              const progressValue = savingsTarget > 0
+                ? Math.min(Math.max(0, realSavings) / savingsTarget * 100, 100)
+                : 0;
 
-              let variant: 'success' | 'warning' | 'danger';
-              let badgeLabel: string;
-              let diffLabel: string;
-              let diffColor: string;
-              let progressColor: string;
-
-              if (realSavings < 0) {
-                variant = 'danger';
-                badgeLabel = 'Déficit';
-                diffLabel = `Déficit de ${formatCurrency(Math.abs(realSavings), state.config.currency)} — los gastos superan los ingresos`;
-                diffColor = 'text-red-500';
-                progressColor = '#ef4444';
-              } else if (savingsRatio >= 1) {
-                variant = 'success';
-                badgeLabel = 'Meta lograda';
-                diffLabel = `Meta superada · Sobrante adicional: ${formatCurrency(realSavings - savingsTarget, state.config.currency)}`;
-                diffColor = 'text-green-600';
-                progressColor = '#22c55e';
-              } else if (savingsRatio >= 0.85) {
-                variant = 'warning';
-                badgeLabel = 'Cerca';
-                diffLabel = `Faltan ${formatCurrency(savingsTarget - realSavings, state.config.currency)} para la meta`;
-                diffColor = 'text-yellow-600';
-                progressColor = '#eab308';
-              } else {
-                variant = 'warning';
-                badgeLabel = 'Por debajo';
-                diffLabel = `Faltan ${formatCurrency(savingsTarget - realSavings, state.config.currency)} para la meta · Reduce necesidades u ocio`;
-                diffColor = 'text-orange-500';
-                progressColor = '#f97316';
-              }
+              const metaCumplida = disponible >= 0;
+              const deficit = realSavings < 0;
 
               return (
-                <div className="space-y-2">
+                <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">Ahorro</span>
-                      <Badge variant={variant} className="text-xs">
-                        {badgeLabel}
-                      </Badge>
-                    </div>
-                    <span className="text-sm font-medium text-muted-foreground">
-                      {formatCurrency(Math.max(0, realSavings), state.config.currency)}{' '}
-                      <span className="text-xs">/ {formatCurrency(savingsTarget, state.config.currency)}</span>
-                    </span>
+                    <span className="font-medium">Ahorro</span>
+                    <Badge
+                      variant={deficit ? 'danger' : metaCumplida ? 'success' : progressValue >= 85 ? 'warning' : 'outline'}
+                      className="text-xs"
+                    >
+                      {deficit ? 'Déficit' : metaCumplida ? 'Meta cumplida ✓' : progressValue >= 85 ? 'Casi lista' : 'En progreso'}
+                    </Badge>
                   </div>
-                  <p className="text-xs text-muted-foreground leading-relaxed">
-                    {formatCurrency(monthlyIncome, state.config.currency)}{' '}
-                    <span className="opacity-60">(ingreso)</span>
-                    {' − '}
-                    {formatCurrency(spentByRubro.needs, state.config.currency)}{' '}
-                    <span className="opacity-60">(nec.)</span>
-                    {' − '}
-                    {formatCurrency(spentByRubro.leisure, state.config.currency)}{' '}
-                    <span className="opacity-60">(ocio)</span>
-                  </p>
-                  <Progress
-                    value={progressValue}
-                    className="h-3"
-                    style={{ '--progress-color': progressColor } as React.CSSProperties}
-                  />
-                  <p className={`text-xs font-medium ${diffColor}`}>
-                    {diffLabel}
-                  </p>
+
+                  {/* Meta vs disponible */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="rounded-lg bg-muted p-3">
+                      <p className="text-xs text-muted-foreground mb-1">Meta mensual</p>
+                      <p className="text-base font-bold">{formatCurrency(toDisplay(savingsTarget), state.config.currency)}</p>
+                      <p className="text-xs text-muted-foreground">{state.config.rule.savings}% del ingreso</p>
+                    </div>
+                    <div className="rounded-lg bg-muted p-3">
+                      <p className="text-xs text-muted-foreground mb-1">Disponible para ahorrar</p>
+                      <p className={`text-base font-bold ${deficit ? 'text-red-500' : 'text-foreground'}`}>
+                        {formatCurrency(toDisplay(Math.max(0, realSavings)), state.config.currency)}
+                      </p>
+                      <p className="text-xs text-muted-foreground">Ingreso − Nec. − Ocio</p>
+                    </div>
+                  </div>
+
+                  {/* Barra de progreso hacia la meta */}
+                  <div className="space-y-1">
+                    <div className="flex justify-between text-xs text-muted-foreground">
+                      <span>Progreso hacia la meta</span>
+                      <span>{Math.min(progressValue, 100).toFixed(0)}%</span>
+                    </div>
+                    <Progress
+                      value={progressValue}
+                      className="h-2"
+                      style={{
+                        '--progress-color': deficit ? '#ef4444' : metaCumplida ? '#22c55e' : progressValue >= 85 ? '#eab308' : '#f97316',
+                      } as React.CSSProperties}
+                    />
+                  </div>
+
+                  {/* Insight principal */}
+                  {deficit ? (
+                    <div className="rounded-lg bg-red-500/10 border border-red-500/20 p-3 flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-semibold text-red-600 dark:text-red-400">Gastos mayores al ingreso</p>
+                        <p className="text-xs text-muted-foreground">Necesidades + Ocio superan lo que ganas</p>
+                      </div>
+                      <p className="text-lg font-bold text-red-500">
+                        −{formatCurrency(toDisplay(Math.abs(realSavings)), state.config.currency)}
+                      </p>
+                    </div>
+                  ) : metaCumplida ? (
+                    <div className="rounded-lg bg-green-500/10 border border-green-500/20 p-3 flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-semibold text-green-700 dark:text-green-400">Excedente libre</p>
+                        <p className="text-xs text-muted-foreground">Libre después de cubrir tu meta</p>
+                      </div>
+                      <p className="text-lg font-bold text-green-600">
+                        +{formatCurrency(toDisplay(disponible), state.config.currency)}
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="rounded-lg bg-orange-500/10 border border-orange-500/20 p-3 flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-semibold text-orange-700 dark:text-orange-400">Aún te faltan</p>
+                        <p className="text-xs text-muted-foreground">para alcanzar tu meta este mes</p>
+                      </div>
+                      <p className="text-lg font-bold text-orange-500">
+                        {formatCurrency(toDisplay(Math.abs(disponible)), state.config.currency)}
+                      </p>
+                    </div>
+                  )}
                 </div>
               );
             })()}
