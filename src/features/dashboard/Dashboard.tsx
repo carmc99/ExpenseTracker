@@ -88,7 +88,6 @@ export function Dashboard() {
     };
   };
 
-  const RUBROS: Rubro[] = ['needs', 'leisure', 'savings'];
 
   return (
     <div className="space-y-6">
@@ -187,33 +186,22 @@ export function Dashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            {RUBROS.map((rubro) => {
+            {/* Necesidades y Ocio: rastrean gasto real vs presupuesto */}
+            {(['needs', 'leisure'] as Rubro[]).map((rubro) => {
               const status = rubroStatus(rubro);
               const diff = status.budget - status.spent;
-              const isSavings = rubro === 'savings';
-              const isOver = status.status === 'over';
-              const statusVariant = isSavings
-                ? isOver ? 'success' : status.status === 'warning' ? 'warning' : 'danger'
-                : status.status === 'ok' ? 'success' : status.status === 'warning' ? 'warning' : 'danger';
-
-              let diffLabel: string;
-              if (isSavings) {
-                diffLabel = diff >= 0
-                  ? `Faltan ${formatCurrency(diff, state.config.currency)} para la meta`
-                  : `Meta superada en ${formatCurrency(Math.abs(diff), state.config.currency)}`;
-              } else {
-                diffLabel = diff >= 0
-                  ? `Disponible: ${formatCurrency(diff, state.config.currency)}`
-                  : `Excedido en ${formatCurrency(Math.abs(diff), state.config.currency)}`;
-              }
+              const variant =
+                status.status === 'ok' ? 'success' : status.status === 'warning' ? 'warning' : 'danger';
+              const progressColor =
+                variant === 'success' ? '#22c55e' : variant === 'warning' ? '#eab308' : '#ef4444';
 
               return (
                 <div key={rubro} className="space-y-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <span className="font-medium">{getRubroLabel(rubro)}</span>
-                      <Badge variant={statusVariant} className="text-xs">
-                        {isSavings && isOver ? 'Meta superada' : getStatusLabel(status.status)}
+                      <Badge variant={variant} className="text-xs">
+                        {getStatusLabel(status.status)}
                       </Badge>
                     </div>
                     <span className="text-sm font-medium text-muted-foreground">
@@ -224,18 +212,84 @@ export function Dashboard() {
                   <Progress
                     value={Math.min(status.percentage, 100)}
                     className="h-3"
-                    style={{ '--progress-color': statusVariant === 'success' ? '#22c55e' : statusVariant === 'warning' ? '#eab308' : '#ef4444' } as React.CSSProperties}
+                    style={{ '--progress-color': progressColor } as React.CSSProperties}
                   />
-                  <p className={`text-xs font-medium ${
-                    isSavings
-                      ? isOver ? 'text-green-600' : 'text-orange-500'
-                      : diff >= 0 ? 'text-muted-foreground' : 'text-red-500'
-                  }`}>
-                    {diffLabel}
+                  <p className={`text-xs font-medium ${diff >= 0 ? 'text-muted-foreground' : 'text-red-500'}`}>
+                    {diff >= 0
+                      ? `Disponible: ${formatCurrency(diff, state.config.currency)}`
+                      : `Excedido en ${formatCurrency(Math.abs(diff), state.config.currency)}`}
                   </p>
                 </div>
               );
             })}
+
+            {/* Ahorro: calculado como sobrante real (Ingreso − Necesidades − Ocio) */}
+            {(() => {
+              const savingsTarget = budgetByRubro.savings;
+              const realSavings = monthlyIncome - spentByRubro.needs - spentByRubro.leisure;
+              const savingsRatio = savingsTarget > 0 ? realSavings / savingsTarget : 0;
+              const progressValue = savingsTarget > 0 ? Math.min(Math.max(0, realSavings) / savingsTarget * 100, 100) : 0;
+
+              let variant: 'success' | 'warning' | 'danger';
+              let badgeLabel: string;
+              let diffLabel: string;
+              let diffColor: string;
+              let progressColor: string;
+
+              if (realSavings < 0) {
+                variant = 'danger';
+                badgeLabel = 'Déficit';
+                diffLabel = `Déficit de ${formatCurrency(Math.abs(realSavings), state.config.currency)} — los gastos superan los ingresos`;
+                diffColor = 'text-red-500';
+                progressColor = '#ef4444';
+              } else if (savingsRatio >= 1) {
+                variant = 'success';
+                badgeLabel = 'Meta lograda';
+                diffLabel = `Meta superada · Sobrante adicional: ${formatCurrency(realSavings - savingsTarget, state.config.currency)}`;
+                diffColor = 'text-green-600';
+                progressColor = '#22c55e';
+              } else if (savingsRatio >= 0.85) {
+                variant = 'warning';
+                badgeLabel = 'Cerca';
+                diffLabel = `Faltan ${formatCurrency(savingsTarget - realSavings, state.config.currency)} para la meta`;
+                diffColor = 'text-yellow-600';
+                progressColor = '#eab308';
+              } else {
+                variant = 'warning';
+                badgeLabel = 'Por debajo';
+                diffLabel = `Faltan ${formatCurrency(savingsTarget - realSavings, state.config.currency)} para la meta · Reduce necesidades u ocio`;
+                diffColor = 'text-orange-500';
+                progressColor = '#f97316';
+              }
+
+              return (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">Ahorro</span>
+                      <Badge variant={variant} className="text-xs">
+                        {badgeLabel}
+                      </Badge>
+                    </div>
+                    <span className="text-sm font-medium text-muted-foreground">
+                      {formatCurrency(Math.max(0, realSavings), state.config.currency)}{' '}
+                      <span className="text-xs">/ {formatCurrency(savingsTarget, state.config.currency)}</span>
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Ingreso − Necesidades − Ocio
+                  </p>
+                  <Progress
+                    value={progressValue}
+                    className="h-3"
+                    style={{ '--progress-color': progressColor } as React.CSSProperties}
+                  />
+                  <p className={`text-xs font-medium ${diffColor}`}>
+                    {diffLabel}
+                  </p>
+                </div>
+              );
+            })()}
           </CardContent>
         </Card>
       </div>
